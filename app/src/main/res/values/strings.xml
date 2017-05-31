@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">HttpDemo</string>
+    
+    <string name="okhttp">OKHttp</string>
+
+    <string name="request_get">get request</string>
+    <string name="request_post_form">post request with form</string>
+    <string name="request_post_json">post request with json</string>
+    <string name="request_post_multi_upload">post request upload with multipart</string>
+    <string name="request_post_download">post request download</string>
+    <string name="request_cancel">cancel request in 1ms</string>
+
+    <string name="request_async">Request Async</string>
+    <string name="request_async_close">Request Async Closed</string>
+</resources>
