@@ -24,6 +24,7 @@ import okhttp3.Callback;
 import okhttp3.Cookie;
 import okhttp3.CookieJar;
 import okhttp3.FormBody;
+import okhttp3.Headers;
 import okhttp3.HttpUrl;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
@@ -185,12 +186,11 @@ public class OkHttpHelper {
             for (Call call : mClient.dispatcher().queuedCalls()) {
                 if (tag.equals(call.request().tag())) {
                     call.cancel();
+                    Log.d(TAG, "gln_cancel: " + tag);
                 }
-            }
-
-            for (Call call : mClient.dispatcher().runningCalls()) {
                 if (tag.equals(call.request().tag())) {
                     call.cancel();
+                    Log.d(TAG, "gln_cancel: " + tag);
                 }
             }
         }
@@ -222,7 +222,7 @@ public class OkHttpHelper {
         return genRequest(url, null, METHOD_POST, requestBody, forceNetwork);
     }
 
-    private Request genPostMultipartRequest(String url, String title, String type, File file, HashMap<String, String> map, boolean forceNetwork) {
+    private Request genPostMultipartRequest(String url, String type, File file, HashMap<String, String> map, boolean forceNetwork) {
         MultipartBody.Builder builder = new MultipartBody.Builder();
         builder.setType(MultipartBody.FORM);
 
@@ -233,7 +233,7 @@ public class OkHttpHelper {
             }
         }
 
-        builder.addFormDataPart(title, file.getName(), RequestBody.create(MediaType.parse(type), file));
+        builder.addPart(RequestBody.create(MediaType.parse(type), file));
         return genRequest(url, null, METHOD_POST, builder.build(), forceNetwork);
     }
 
@@ -278,7 +278,7 @@ public class OkHttpHelper {
         Callback callback = new Callback() {
                 @Override
                 public void onFailure(Call call, IOException e) {
-                    Log.w(TAG, "onFailure[call: " + call + ", IOException: " + e + "]");
+                    Log.w(TAG, "gln_onFailure[call: " + call + ", IOException: " + e + "]");
                     final IOException finalE = e;
                     final Call finalCall = call;
                     mHandler.post(new Runnable() {
@@ -294,9 +294,9 @@ public class OkHttpHelper {
                 @Override
                 public void onResponse(Call call, Response response) throws IOException {
                     if (null != response.cacheResponse()) {
-                        Log.d(TAG, "onResponse cache[call: " + call + ", response: " + response.cacheResponse().toString() + "]");
+                        Log.d(TAG, "gln_onResponse cache[call: " + call + ", response: " + response.cacheResponse().toString() + "]");
                     } else {
-                        Log.d(TAG, "onResponse network[call: " + call + ", response: " + response.networkResponse().toString() + "]");
+                        Log.d(TAG, "gln_onResponse network[call: " + call + ", response: " + response.networkResponse().toString() + "]");
                     }
                     final Response finalResponse = response;
                     final Call finalCall = call;

@@ -5,6 +5,7 @@ import android.os.Environment;
 import android.util.Log;
 
 import java.io.File;
+import java.io.IOException;
 
 /**
  * Created by guolina on 2017/5/31.
@@ -34,8 +35,33 @@ public class FileUtils {
         return downloadPath;
     }
 
+    public static File getOkHttpUploadFile() {
+        String uploadPath;
+        if (hasExternalStorage()) {
+            uploadPath = getExternalStoragePath();
+        } else {
+            uploadPath = getInternalStoragePath();
+        }
+        uploadPath += "/upload";
+        Log.d(TAG, "gln_UploadPath: " + uploadPath);
+        File pathFile = new File(uploadPath);
+        if (!pathFile.exists()) {
+            pathFile.mkdirs();
+        }
+        File file = new File(uploadPath + "/test.txt");
+        if (!file.exists()) {
+            try {
+                file.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return file;
+    }
+
     private static boolean hasExternalStorage() {
-        return Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED);
+//        return Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED);
+        return false;
     }
 
     private static String getExternalStoragePath() {
