@@ -9,6 +9,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
+import android.widget.ImageView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
@@ -38,6 +39,7 @@ public class OkHttpActivity extends Activity implements View.OnClickListener {
     private static final String TAG = OkHttpActivity.class.getSimpleName();
 
     private ToggleButton mToggleButton;
+    private ImageView mImageView;
     private boolean mAsync;
 
     private OkHttpHelper.ResultCallback mCallback = new MyCallback();
@@ -56,6 +58,9 @@ public class OkHttpActivity extends Activity implements View.OnClickListener {
         findViewById(R.id.btn_okhttp_post_upload).setOnClickListener(this);
         findViewById(R.id.btn_okhttp_post_download).setOnClickListener(this);
         findViewById(R.id.btn_cancel).setOnClickListener(this);
+
+        mImageView = (ImageView) findViewById(R.id.image_download);
+        mImageView.setOnClickListener(this);
 
         mToggleButton = (ToggleButton) findViewById(R.id.toggle_async);
         mToggleButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -82,6 +87,24 @@ public class OkHttpActivity extends Activity implements View.OnClickListener {
             return;
         }
 
+        if (v.getId() == R.id.btn_okhttp_post_upload) {
+            HashMap<String, String> map = new HashMap<>();
+            map.put("userName", "gln");
+            mOkHttpHelper.uploadAsync("https://github.com/guolina02/HttpDemo", OkHttpHelper.MIMEType.txt, FileUtils.getOkHttpUploadFile(), map, false);
+            return;
+        }
+
+        if (v.getId() == R.id.btn_okhttp_post_download) {
+            String path = FileUtils.getOkHttpDownloadPath() + "/1.jpg";
+            mOkHttpHelper.downloadAsyncGet("http://images.csdn.net/20150817/1.jpg", new File(path));
+            return;
+        }
+
+        if (v.getId() == R.id.image_download) {
+            mOkHttpHelper.downloadImageAsync("http://images.csdn.net/20150817/1.jpg", mImageView);
+            return;
+        }
+
         if (mAsync) {
             switch (v.getId()) {
                 case R.id.btn_okhttp_get:
@@ -103,12 +126,6 @@ public class OkHttpActivity extends Activity implements View.OnClickListener {
                     }
                     mOkHttpHelper.postAsync("https://www.baidu.com", json, false);
                     break;
-                case R.id.btn_okhttp_post_upload:
-                    mOkHttpHelper.postAsync("https://github.com/guolina02/HttpDemo", OkHttpHelper.MIMEType.txt, FileUtils.getOkHttpUploadFile(), false);
-                    break;
-                case R.id.btn_okhttp_post_download:
-                    mOkHttpHelper.postAsync("https://github.com/guolina02/HttpDemo/blob/master/README.md", new HashMap<String, String>(), false);
-                    break;
             }
         } else {
             new MyAsyncTask().execute(v.getId());
@@ -121,23 +138,6 @@ public class OkHttpActivity extends Activity implements View.OnClickListener {
 
     private void onResponse(String url, Response response) {
         Toast.makeText(OkHttpActivity.this, "gln_onResponse[url: " + url + "]", Toast.LENGTH_SHORT).show();
-        if (!TextUtils.isEmpty(url) && "".equals(url)) {
-            byte[] bytes = new byte[1024];
-            InputStream inStream = response.body().byteStream();
-            int result;
-            File file = new File(FileUtils.getOkHttpDownloadPath() + "/okhttp/" + url);
-            FileOutputStream outStream = null;
-            try {
-                outStream = new FileOutputStream(file);
-                while ((result = inStream.read(bytes)) != -1) {
-                    outStream.write(bytes, 0, bytes.length);
-                }
-            } catch (IOException e) {
-                Toast.makeText(OkHttpActivity.this, "gln_onResponse file save exception", Toast.LENGTH_SHORT).show();
-                e.printStackTrace();
-            }
-            Toast.makeText(OkHttpActivity.this, "gln_onResponse file save success!!", Toast.LENGTH_SHORT).show();
-        }
     }
 
     private void cancelRequest() {
@@ -200,14 +200,6 @@ public class OkHttpActivity extends Activity implements View.OnClickListener {
                     }
                     url = "https://www.baidu.com";
                     response = mOkHttpHelper.post(url, json, false);
-                    break;
-                case R.id.btn_okhttp_post_upload:
-                    url = "https://github.com/guolina02/HttpDemo";
-                    response = mOkHttpHelper.post(url, OkHttpHelper.MIMEType.txt, FileUtils.getOkHttpUploadFile(), false);
-                    break;
-                case R.id.btn_okhttp_post_download:
-                    url = "https://github.com/guolina02/HttpDemo/test.txt";
-                    response = mOkHttpHelper.post(url, new HashMap<String, String>(), false);
                     break;
             }
             return response;

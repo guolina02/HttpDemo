@@ -1,15 +1,20 @@
 package com.guolina.httpdemo.okhttp;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Log;
+import android.widget.ImageView;
 
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -177,6 +182,37 @@ public class OkHttpHelper {
         doRequestAsync(genPostJsonRequest(url, json, forceNetwork));
     }
 
+    public void uploadAsync(String url, String type, File file, HashMap<String, String> map, boolean forceNetwork) {
+        if (TextUtils.isEmpty(url)) {
+            return;
+        }
+        doRequestAsync(genPostMultipartRequest(url, type, file, map, forceNetwork));
+    }
+
+    public void downloadAsync(String url, File file) {
+        if (TextUtils.isEmpty(url)) {
+            return;
+        }
+
+        doRequestAsync(genPostFormRequest(url, null, false), file, null);
+    }
+
+    public void downloadAsyncGet(String url, File file) {
+        if (TextUtils.isEmpty(url)) {
+            return;
+        }
+
+        doRequestAsync(genRequest(url, null, METHOD_GET, null, false), file, null);
+    }
+
+    public void downloadImageAsync(String url, ImageView imageView) {
+        if (TextUtils.isEmpty(url)) {
+            return;
+        }
+
+        doRequestAsync(genRequest(url, null, METHOD_GET, null, false), null, imageView);
+    }
+
     public void cancel(String tag) {
         if (TextUtils.isEmpty(tag)) {
             return;
@@ -274,6 +310,10 @@ public class OkHttpHelper {
     }
 
     private void doRequestAsync(Request request) {
+        doRequestAsync(request, null, null);
+    }
+
+    private void doRequestAsync(Request request, final File file, final ImageView imageView) {
         Call call = mClient.newCall(request);
         Callback callback = new Callback() {
                 @Override
@@ -308,6 +348,38 @@ public class OkHttpHelper {
                             }
                         }
                     });
+
+                    if (file != null) {
+                        InputStream in = response.body().byteStream();
+                        byte[] b = new byte[1024];
+                        FileOutputStream out = null;
+                        try {
+                            out = new FileOutputStream(file);
+                            int len;
+                            while ((len = in.read(b)) != -1) {
+                                out.write(b, 0, b.length);
+                            }
+                            out.flush();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        } finally {
+                            if (in != null)
+                                in.close();
+                            if (out != null)
+                                out.close();
+                        }
+                    }
+
+                    if (imageView != null) {
+                        InputStream in = response.body().byteStream();
+                        final Bitmap bitmap = BitmapFactory.decodeStream(in);
+                        mHandler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                imageView.setImageBitmap(bitmap);
+                            }
+                        });
+                    }
                 }
             };
         call.enqueue(callback);
