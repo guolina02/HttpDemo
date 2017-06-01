@@ -15,6 +15,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetAddress;
+import java.net.Proxy;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -22,21 +25,33 @@ import java.util.Set;
 import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.TimeUnit;
 
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLSession;
+
+import okhttp3.Authenticator;
 import okhttp3.Cache;
 import okhttp3.CacheControl;
 import okhttp3.Call;
 import okhttp3.Callback;
+import okhttp3.CertificatePinner;
+import okhttp3.ConnectionPool;
+import okhttp3.ConnectionSpec;
 import okhttp3.Cookie;
 import okhttp3.CookieJar;
+import okhttp3.Dispatcher;
+import okhttp3.Dns;
 import okhttp3.FormBody;
 import okhttp3.Headers;
 import okhttp3.HttpUrl;
+import okhttp3.Interceptor;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
+import okhttp3.Protocol;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import okhttp3.Route;
 
 /**
  * Created by guolina on 2017/5/25.
@@ -224,6 +239,8 @@ public class OkHttpHelper {
                     call.cancel();
                     Log.d(TAG, "gln_cancel: " + tag);
                 }
+            }
+            for (Call call: mClient.dispatcher().runningCalls()) {
                 if (tag.equals(call.request().tag())) {
                     call.cancel();
                     Log.d(TAG, "gln_cancel: " + tag);
